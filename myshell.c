@@ -1,25 +1,65 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>     // fork, execvp, chdir
+#include <sys/types.h>
+#include <sys/wait.h>   // waitpid
+#include <signal.h>     // signal handling
 
 #define MAX_CMD_LEN 1024
+#define MAX_ARGS 64 
 
 int main() {
     char input[MAX_CMD_LEN];
+    char *args[MAX_ARGS]; 
 
     while (1) {
         printf("myshell> ");
-        // Read input
-        if (fgets(input, MAX_CMD_LEN, stdin) == NULL) {
-            break; 
-        }
+        if (fgets(input, MAX_CMD_LEN, stdin) == NULL) break;
 
-        // Remove newline character
+        // Clean up the newline character and ensure input is not empty
         input[strcspn(input, "\n")] = 0;
 
-        // Exit command (basic)
-        if (strcmp(input, "exit") == 0) {
-            break;
+        // Parsing
+        int i = 0;
+        char *token = strtok(input, " ");
+        while (token != NULL) {
+            args[i++] = token;
+            token = strtok(NULL, " ");
+        }
+        args[i] = NULL; 
+
+        if (args[0] == NULL) continue;
+
+        int background = 0;
+        
+        // exit and cd 
+        if (strcmp(args[0], "exit") == 0) exit(0);
+        
+        if (strcmp(args[0], "cd") == 0) {
+            if (args[1] == NULL) fprintf(stderr, "cd: missing argument\n");
+            else if (chdir(args[1]) != 0) perror("cd failed");
+            continue;
+        }
+
+        // external commands
+        pid_t pid = fork(); 
+
+        if (pid == 0) {
+            // CHILD PROCESS 
+            if (execvp(args[0], args) < 0) {
+                perror("Command not found");
+                exit(1);
+            }
+        } else if (pid > 0) {
+            // PARENT PROCESS 
+            if (!background) {
+                waitpid(pid, NULL, 0); 
+            } else {
+                waitpid(pid, NULL, 0); 
+            }
+        } else {
+            perror("Fork failed");
         }
     }
     return 0;
