@@ -9,9 +9,16 @@
 #define MAX_CMD_LEN 1024
 #define MAX_ARGS 64 
 
+void sigint_handler(int sig) {
+    printf("\nmyshell> ");
+    fflush(stdout); // Ensures the prompt appears immediately
+}
+
 int main() {
     char input[MAX_CMD_LEN];
     char *args[MAX_ARGS]; 
+    int background = 0;
+
 
     while (1) {
         printf("myshell> ");
@@ -31,7 +38,6 @@ int main() {
 
         if (args[0] == NULL) continue;
 
-        int background = 0;
         
         // exit and cd 
         if (strcmp(args[0], "exit") == 0) exit(0);
