@@ -19,6 +19,7 @@ int main() {
     char *args[MAX_ARGS]; 
     int background = 0;
 
+    signal(SIGINT, sigint_handler);
 
     while (1) {
         printf("myshell> ");
