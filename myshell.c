@@ -45,6 +45,11 @@ int main() {
 
         if (args[0] == NULL) continue;
 
+        if (i > 0 && strcmp(args[i-1], "&") == 0) {
+            background = 1;
+            args[i-1] = NULL; 
+        }
+        
         
         // exit and cd 
         if (strcmp(args[0], "exit") == 0) exit(0);
@@ -69,11 +74,11 @@ int main() {
             if (!background) {
                 waitpid(pid, NULL, 0); 
             } else {
-                waitpid(pid, NULL, 0); 
+                printf("[Background process started: %d]\n", pid);
             }
         } else {
             perror("Fork failed");
         }
-    }
+        background = 0;    }
     return 0;
 }
